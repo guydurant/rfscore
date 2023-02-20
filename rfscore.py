@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 from scipy.stats import pearsonr, spearmanr
 from tqdm import tqdm
 from joblib import Parallel, delayed
+import pickle
 
 def load_csv(csv_file, data_dir):
     df = pd.read_csv(csv_file)
@@ -37,10 +38,10 @@ def train_model(csv_file, data_dir):
     # features = {}
     # for i in tqdm(range(len(keys))):
     #     features[keys[i]] = generate_features(protein_files[i], ligand_files[i])
-    features_df = pd.DataFrame(features, index_col=0)
+    features_df = pd.DataFrame(features)
     # features = {keys[i]: result for i, result in enumerate(map(generate_features, protein_files, ligand_files))}
     print('Ready to train model')
-    model = RandomForestRegressor(n_estimatators=500, n_jobs=-1)
+    model = RandomForestRegressor(n_estimators=500, n_jobs=-1)
     model.fit(features_df, pks)
     return model
 
@@ -49,7 +50,7 @@ def predict(model, csv_file, data_dir):
     features = {}
     for i in tqdm(range(len(keys))):
         features[keys[i]] = generate_features(protein_files[i], ligand_files[i])
-    features_df = pd.DataFrame(features, index_col=0)
+    features_df = pd.DataFrame(features)
     return model.predict(features_df), pks
 
 if __name__ == '__main__':
@@ -62,11 +63,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.train:
         model = train_model(args.csv_file, args.data_dir)
-        model.save(f'temp_models/{args.model_name}.pkl')
-    if args.predict:
-        model = RandomForestRegressor.load(f'temp_models/{args.model_name}.pkl')
+        with open(f'temp_models/{args.model_name}.pkl', 'wb') as handle:
+            pickle.dump(model, handle)
+    elif args.predict:
+        with open(f'temp_models/{args.model_name}.pkl', 'rb') as handles:
+            model = pickle.load(handle)
         pred, true = predict(model, args.protein_file, args.ligand_file)
         print(f'Pearson: {pearsonr(pred, true)[0]}')
         print(f'Spearman: {spearmanr(pred, true)[0]}')
-
+    else:
+        raise ValueError('Need to define mode, --train or --predict')
 
