@@ -57,6 +57,8 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--csv_file', help='CSV file with protein, ligand and pk data')
     parser.add_argument('--data_dir', help='Directory with protein and ligand files')
+    parser.add_argument('--val_csv_file', help='CSV file with protein, ligand and pk data')
+    parser.add_argument('--val_data_dir', help='Directory with protein and ligand files')
     parser.add_argument('--model_name', help='Name of the model to be saved or to be loaded')
     parser.add_argument('--train', action='store_true', help='Train the model')
     parser.add_argument('--predict', action='store_true', help='Predict pK')
@@ -66,9 +68,9 @@ if __name__ == '__main__':
         with open(f'temp_models/{args.model_name}.pkl', 'wb') as handle:
             pickle.dump(model, handle)
     elif args.predict:
-        with open(f'temp_models/{args.model_name}.pkl', 'rb') as handles:
+        with open(f'temp_models/{args.model_name}.pkl', 'rb') as handle:
             model = pickle.load(handle)
-        pred, true = predict(model, args.protein_file, args.ligand_file)
+        pred, true = predict(model, args.val_csv_file, args.val_data_dir)
         print(f'Pearson: {pearsonr(pred, true)[0]}')
         print(f'Spearman: {spearmanr(pred, true)[0]}')
     else:
