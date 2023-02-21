@@ -36,6 +36,8 @@ def train_model(csv_file, data_dir):
     with Parallel(n_jobs=-1) as parallel:
         features = parallel(delayed(generate_features)(protein_files[i], ligand_files[i]) for i in tqdm(range(len(keys))))
     features_df = pd.DataFrame(features)
+    print(features_df.head())
+    print(features_df.columns)
     print('Ready to train model')
     model = RandomForestRegressor(n_estimators=500, n_jobs=-1)
     model.fit(features_df, pks)
@@ -44,9 +46,10 @@ def train_model(csv_file, data_dir):
 def predict(model, csv_file, data_dir):
     keys, protein_files, ligand_files, pks = load_csv(csv_file, data_dir)
     features = {}
-    for i in tqdm(range(len(keys))):
-        features[keys[i]] = generate_features(protein_files[i], ligand_files[i])
+    with Parallel(n_jobs=-1) as parallel:
+        features = parallel(delayed(generate_features)(protein_files[i], ligand_files[i]) for i in tqdm(range(len(keys))))
     features_df = pd.DataFrame(features)
+    print(features_df)
     pred_pK = model.predict(features_df)
     return pd.DataFrame({'key': keys, 'pred': pred_pK, 'pk': pks})
 
