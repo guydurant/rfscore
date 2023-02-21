@@ -73,8 +73,8 @@ if __name__ == '__main__':
             model = pickle.load(handle)
         results_df = predict(model, args.val_csv_file, args.val_data_dir)
         results_df.to_csv(f'results/{args.model_name}_{args.val_csv_file.split("/")[-1]}', index=False)
-        print(f'Pearson: {pearsonr(results_df["pred"], results_df["true"])[0]}')
-        print(f'Spearman: {spearmanr(results_df["pred"], results_df["true"])[0]}')
+        print(f'Pearson: {pearsonr(results_df["pred"], results_df["pk"])[0]}')
+        print(f'Spearman: {spearmanr(results_df["pred"], results_df["pk"])[0]}')
     else:
         raise ValueError('Need to define mode, --train or --predict')
 
