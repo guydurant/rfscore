@@ -18,7 +18,7 @@ def load_csv(csv_file, data_dir):
     return keys, protein_files, ligand_files, pks
 
 
-def generate_features(protein_file, ligand_file):
+def generate_feature(protein_file, ligand_file):
     protein = next(ob.readfile('pdb', protein_file))
     protein.protein = True
     ligand = next(ob.readfile('sdf', ligand_file))
@@ -30,26 +30,27 @@ def generate_features(protein_file, ligand_file):
     )
     return {name:value for name, value in zip(rfscore_engine.titles, rfscore_engine.build(ligand)[0])}
 
-def train_model(csv_file, data_dir):
-    print('Featurising data')
+def batch_generate_features(csv_file, data_dir):
     keys, protein_files, ligand_files, pks = load_csv(csv_file, data_dir)
-    with Parallel(n_jobs=-1) as parallel:
-        features = parallel(delayed(generate_features)(protein_files[i], ligand_files[i]) for i in tqdm(range(len(keys))))
-    features_df = pd.DataFrame(features)
-    print(features_df.head())
-    print(features_df.columns)
+    if not os.path.exists(f'temp_features/{csv_file.split("/")[-1].split(".")[0]}_features.csv'):
+        with Parallel(n_jobs=-1) as parallel:
+            features = parallel(delayed(generate_feature)(protein_files[i], ligand_files[i]) for i in tqdm(range(len(keys))))
+        features_df = pd.DataFrame(features)
+        features_df.to_csv(f'temp_features/{csv_file.split("/")[-1].split(".")[0]}_features.csv', index=False)
+    else:
+        features_df = pd.read_csv(f'temp_features/{csv_file.split("/")[-1].split(".")[0]}_features.csv')
+    return features_df, pks, keys
+    
+
+def train_model(csv_file, data_dir):
+    features_df, pks, keys = batch_generate_features(csv_file, data_dir)
     print('Ready to train model')
     model = RandomForestRegressor(n_estimators=500, n_jobs=-1)
     model.fit(features_df, pks)
     return model
 
 def predict(model, csv_file, data_dir):
-    keys, protein_files, ligand_files, pks = load_csv(csv_file, data_dir)
-    features = {}
-    with Parallel(n_jobs=-1) as parallel:
-        features = parallel(delayed(generate_features)(protein_files[i], ligand_files[i]) for i in tqdm(range(len(keys))))
-    features_df = pd.DataFrame(features)
-    print(features_df)
+    features_df, pks, keys = batch_generate_features(csv_file, data_dir)
     pred_pK = model.predict(features_df)
     return pd.DataFrame({'key': keys, 'pred': pred_pK, 'pk': pks})
 
