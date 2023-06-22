@@ -96,7 +96,7 @@ def batch_generate_features(csv_file, data_dir, cutoff):
         List of keys for each protein-ligand complex
     """
     keys, protein_files, ligand_files, pks = load_csv(csv_file, data_dir)
-    if not os.dir.exists("data/features"):
+    if not os.path.exists("data/features"):
         os.makedirs("data/features")
     if not os.path.exists(
         f'data/features/{csv_file.split("/")[-1].split(".")[0]}_{cutoff}_features.csv'
@@ -204,18 +204,18 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     if args.train:
-        if not os.dir.exists("data/models"):
+        if not os.path.exists("data/models"):
             os.makedirs("data/models")
         model = train_model(args.csv_file, args.data_dir, args.cutoff)
         with open(f"data/models/{args.model_name}.pkl", "wb") as handle:
             pickle.dump(model, handle)
     if args.predict:
-        if not os.dir.exists("data/models"):
+        if not os.path.exists("data/models"):
             os.makedirs("data/models")
         with open(f"data/models/{args.model_name}.pkl", "rb") as handle:
             model = pickle.load(handle)
         results_df = predict(model, args.val_csv_file, args.val_data_dir, args.cutoff)
-        if not os.dir.exists("data/results"):
+        if not os.path.exists("data/results"):
             os.makedirs("data/results")
         results_df.to_csv(
             f'data/results/{args.model_name}_{args.val_csv_file.split("/")[-1]}',
