@@ -184,10 +184,10 @@ if __name__ == "__main__":
         "--data_dir", help="Training directory with protein and ligand files"
     )
     parser.add_argument(
-        "--test_csv_file", help="Test CSV file with protein, ligand and pk data"
+        "--val_csv_file", help="Test CSV file with protein, ligand and pk data"
     )
     parser.add_argument(
-        "--test_data_dir", help="Test directory with protein and ligand files"
+        "--val_data_dir", help="Test directory with protein and ligand files"
     )
     parser.add_argument(
         "--model_name", help="Name of the model to be saved or to be loaded"
